@@ -30,11 +30,11 @@
 | **2 · Application** | API, dashboard, route pages, alerts, ops console | [skaisearch.com/app](https://skaisearch.com/app), opens as a view-only guest |
 | **3 · Model** | Nightly retrain, promotion gate, inference | [skaisearch.com](https://skaisearch.com), no login |
 
-<!-- stats:start · generated from the live database, do not hand-edit -->
+<!-- stats:start:strip · generated from the live database, do not hand-edit -->
 **11.0M+** price observations · **1.27M+** flights · **790k+** logged query attempts ·
 **1,800+** collection runs · **35** active routes · **27** airports · **5.0 GB** on disk ·
 collecting since 2026-02-02.
-<!-- stats:end -->
+<!-- stats:end:strip -->
 
 23 tables · 18 migrations · 115 named queries.
 
