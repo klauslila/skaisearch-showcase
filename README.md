@@ -6,7 +6,7 @@
 </p>
 
 <p align="center">
-  Three subsystems on one machine: collection, an application to operate it, and a gated model that has to earn its way into serving.
+  Three subsystems on one machine: collection, an application to operate it, and a gated AI model that has to earn its way into serving.
 </p>
 
 <p align="center">
@@ -16,6 +16,8 @@
   <img src="https://img.shields.io/badge/FastAPI-009688?style=flat-square&logo=fastapi&logoColor=white" />
   <img src="https://img.shields.io/badge/PostgreSQL-17-4169E1?style=flat-square&logo=postgresql&logoColor=white" />
   <img src="https://img.shields.io/badge/TimescaleDB-FDB515?style=flat-square&logo=timescale&logoColor=black" />
+  <img src="https://img.shields.io/badge/AI-6f42c1?style=flat-square" />
+  <img src="https://img.shields.io/badge/Machine%20Learning-8957e5?style=flat-square" />
   <img src="https://img.shields.io/badge/XGBoost-EB4C42?style=flat-square" />
   <img src="https://img.shields.io/badge/React-61DAFB?style=flat-square&logo=react&logoColor=black" />
   <img src="https://img.shields.io/badge/Docker-2496ED?style=flat-square&logo=docker&logoColor=white" />
@@ -28,10 +30,10 @@
 |---|---|---|
 | **1 · Collection** | Three sources, four times a day, every outcome recorded | None, internal |
 | **2 · Application** | API, dashboard, route pages, alerts, ops console | [skaisearch.com/app](https://skaisearch.com/app), opens as a view-only guest |
-| **3 · Model** | Nightly retrain, promotion gate, inference | [skaisearch.com](https://skaisearch.com), no login |
+| **3 · Model (ML)** | Nightly retrain, promotion gate, inference | [skaisearch.com](https://skaisearch.com), no login |
 
 <!-- stats:start:strip · generated from the live database, do not hand-edit -->
-**11.1M+** price observations · **1.27M+** flights · **800k+** logged query attempts ·
+**11.1M+** price observations · **1.28M+** flights · **810k+** logged query attempts ·
 **1,800+** collection runs · **35** active routes · **27** airports · **5.0 GB** on disk ·
 collecting since 2026-02-02.
 <!-- stats:end:strip -->
@@ -53,7 +55,7 @@ flowchart TB
     direction TB
     API["api container<br/>FastAPI · uvicorn · 2 workers"]
     PGX[("postgres container<br/>PG 17 + TimescaleDB<br/>named volume")]
-    FPX["model sidecar<br/>no published port"]
+    FPX["ML sidecar<br/>no published port"]
     SCX["3 scraper containers<br/>one-shot, profile-gated"]
     API --> PGX
     API <--> FPX
@@ -61,7 +63,7 @@ flowchart TB
   end
 ```
 
-| Concern | Implementation |
+| Non-functional requirement | Implementation |
 |---|---|
 | Apex domain | Vercel serves the built React bundle. The api container serves the same build, so the two cannot diverge |
 | `api.` subdomain | Cloudflare proxy, then an outbound tunnel. No inbound port is open on the machine or the router |
@@ -90,7 +92,7 @@ flowchart LR
     API2["FastAPI · 2 workers<br/>hardened"]
     PG --> API2
   end
-  subgraph MOD["3 · model"]
+  subgraph MOD["3 · ML model"]
     direction TB
     NJ["nightly retrain<br/>+ promotion gate"]
     FP["XGBoost sidecar<br/>internal only"]
@@ -106,7 +108,7 @@ flowchart LR
 |---|---|---|
 | `postgres` | TimescaleDB image, named volume | Loopback-bound, healthchecked, per-role `statement_timeout` |
 | `api` | REST, and serves the built frontend | `cap_drop: ALL`, read-only rootfs + tmpfs, non-root uid, CPU/mem/PID caps |
-| model sidecar | Inference only | Internal network only, no published port, hardened identically |
+| ML sidecar | Inference only | Internal network only, no published port, hardened identically |
 | 3 scrapers | One per source, one-shot | `init: true` for reaping, own process group per fetch, `cap_drop: ALL` |
 | `adminer` | DB browser | Compose profile, absent from default `up` |
 
@@ -220,7 +222,7 @@ sequenceDiagram
 
 ### Frontend
 
-| Concern | Implementation |
+| Non-functional requirement | Implementation |
 |---|---|
 | Bundles | Code-split, chart library lazy so it arrives only with a chart |
 | Build | Under a second, from roughly four |
@@ -230,7 +232,7 @@ sequenceDiagram
 
 ---
 
-# 🤖 3 · Model
+# 🤖 3 · AI model (machine learning)
 
 ```mermaid
 flowchart LR
@@ -321,6 +323,8 @@ sequenceDiagram
 | Nightly | 03:00 | Retrain and gate, recompute distributions, invalidate stale observations, refresh feature data, regenerate published figures, `pg_dump` |
 | Alert watcher | Every 10 min | Fires once all three sources report for a schedule window, with a timeout so a stalled source cannot block alerts |
 
+### Resilience and disaster recovery
+
 Backups are nightly `pg_dump -Fc` with retention, and the restore script is tested rather than assumed: it
 snapshots first, then recreates the roles the dump deliberately omits.
 
@@ -341,7 +345,7 @@ snapshots first, then recreates the roles the dump deliberately omits.
 
 ---
 
-# 🧠 AI in the loop
+# 🧠 AI in my workflow
 
 ```mermaid
 flowchart TD
@@ -361,6 +365,13 @@ flowchart TD
 
 Two agent surfaces read the same files, one auto-loading the base file, the other over a filesystem MCP
 scoped to the project directory. Those files also render in-app, so the repo and the product cannot diverge.
+
+The context system is retrieval, not one long prompt. Topic files are trigger-indexed and pulled in one at a
+time, so the LLM gets the document the task needs instead of the whole repository. It is the same RAG shape
+as the Confluence retrieval surface I built at work, sized for a single codebase.
+
+What follows is AI governance for agentic work: what an agent may never change, what the repository checks
+without me, and the calls I keep.
 
 ### Invariants
 
@@ -401,7 +412,7 @@ production. A review pass had already approved it.
 | Collect | Python 3.13 · Playwright · HTTP clients · rotating residential proxies |
 | Store | PostgreSQL 17 · TimescaleDB · psycopg pool · aiosql · pg_dump |
 | Serve | FastAPI · uvicorn · React · Vite · TypeScript · MUI · JWT · Cloudflare Tunnel · Vercel |
-| Learn | XGBoost · pandas · scikit-learn · SHAP |
+| AI / ML | XGBoost · pandas · scikit-learn · SHAP |
 
 Source and data are private. <a href="https://klauslila.com">Klaus Lila</a> ·
 <a href="https://github.com/klauslila/klauslila-showcase">klauslila.com write-up</a>
