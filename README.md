@@ -255,8 +255,10 @@ otherwise straddle the train/test boundary.
 | Per-route climate lift | Rejected, retried nightly | Falls back to holiday-only until the data carries it |
 | Booking-curve forecaster | Built, gated off | In-sample win was per-route leakage. Naive wins the time split at every horizon |
 
-The promoted model scores **R² 0.72** against a **0.16** median baseline, with roughly 20% error, fitted on
-109,551 rows across 400 trees. Gain by feature:
+<!-- stats:start:model · generated from the promoted model, do not hand-edit -->
+The promoted model scores **R² 0.72** against a **0.15** median baseline at **19.9%** error, fitted on
+110,931 rows across 400 trees. Gain by feature:
+<!-- stats:end:model -->
 
 | Feature | Gain | Feature | Gain |
 |---|---|---|---|
