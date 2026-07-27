@@ -258,15 +258,16 @@ otherwise straddle the train/test boundary.
 <!-- stats:start:model · generated from the promoted model, do not hand-edit -->
 The promoted model scores **R² 0.72** against a **0.15** median baseline at **19.9%** error, fitted on
 110,931 rows across 400 trees. Gain by feature:
-<!-- stats:end:model -->
 
 | Feature | Gain | Feature | Gain |
 |---|---|---|---|
-| Trip type | ██████████ 39.5% | Origin | ▌3.9% |
-| Distance / haul | █████▌ 21.9% | Climate season | ▌2.1% |
-| Destination | ████▎ 17.0% | Source | ▏1.3% |
-| Stops | █▌ 6.3% | Lead time | ▏1.2% |
-| Departure month | █▎ 5.3% | Carriers, weekend | ▏1.4% |
+| Trip type | ██████████ 40.2% | Climate season | ▌ 2.2% |
+| Distance / haul | █████▋ 22.9% | Source | ▎ 1.3% |
+| Destination | ████ 16.2% | Lead time (days) | ▎ 1.2% |
+| Stops | █▍ 6.0% | Carriers | ▏ 0.9% |
+| Departure month | █▏ 5.0% | Weekend | ▏ 0.3% |
+| Origin | ▉ 3.7% |  |  |
+<!-- stats:end:model -->
 
 One feature module is imported by both trainer and sidecar, so no second implementation can drift. Published
 hyperparameters are read from the training source, because a serialised model reports library defaults for
