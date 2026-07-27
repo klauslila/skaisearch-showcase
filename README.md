@@ -202,7 +202,7 @@ sequenceDiagram
   B->>API: POST /auth/demo
   API-->>B: 200, session issued
   Note over B: engine rejects the delivered response.<br/>one opaque error, and a POST is never retried
-  rect rgb(40,60,40)
+  rect rgba(80,170,120,0.18)
   B->>API: GET /auth/me
   API-->>B: session present
   Note over B: adopt it, surface nothing
