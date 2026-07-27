@@ -402,3 +402,5 @@ production. A review pass had already approved it.
 
 Source and data are private. <a href="https://klauslila.com">Klaus Lila</a> ·
 <a href="https://github.com/klauslila/klauslila-showcase">klauslila.com write-up</a>
+
+<sub>© 2024-2026 Klaus Lila. All rights reserved. Not licensed for reuse.</sub>
