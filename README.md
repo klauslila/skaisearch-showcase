@@ -33,8 +33,8 @@
 | **3 · Model (ML)** | Nightly retrain, promotion gate, inference | [skaisearch.com](https://skaisearch.com), no login |
 
 <!-- stats:start:strip · generated from the live database, do not hand-edit -->
-**11.1M+** price observations · **1.28M+** flights · **810k+** logged query attempts ·
-**1,800+** collection runs · **35** active routes · **27** airports · **5.0 GB** on disk ·
+**11.7M+** price observations · **1.32M+** flights · **890k+** logged query attempts ·
+**1,800+** collection runs · **35** active routes · **27** airports · **5.2 GB** on disk ·
 collecting since 2026-02-02.
 <!-- stats:end:strip -->
 
@@ -258,17 +258,17 @@ otherwise straddle the train/test boundary.
 | Booking-curve forecaster | Built, gated off | In-sample win was per-route leakage. Naive wins the time split at every horizon |
 
 <!-- stats:start:model · generated from the promoted model, do not hand-edit -->
-The promoted model scores **R² 0.72** against a **0.15** median baseline at **19.9%** error, fitted on
-110,931 rows across 400 trees. Gain by feature:
+The promoted model scores **R² 0.72** against a **0.14** median baseline at **21.8%** error, fitted on
+116,567 rows across 400 trees. Gain by feature:
 
 | Feature | Gain | Feature | Gain |
 |---|---|---|---|
-| Trip type | ██████████ 40.2% | Climate season | ▌ 2.2% |
-| Distance / haul | █████▋ 22.9% | Source | ▎ 1.3% |
-| Destination | ████ 16.2% | Lead time (days) | ▎ 1.2% |
-| Stops | █▍ 6.0% | Carriers | ▏ 0.9% |
-| Departure month | █▏ 5.0% | Weekend | ▏ 0.3% |
-| Origin | ▉ 3.7% |  |  |
+| Trip type | ██████████ 40.1% | Climate season | ▌ 2.2% |
+| Distance / haul | █████▋ 22.7% | Source | ▎ 1.3% |
+| Destination | ████▏ 16.6% | Lead time (days) | ▎ 1.1% |
+| Stops | █▍ 5.7% | Carriers | ▏ 1.0% |
+| Departure month | █▏ 5.0% | Weekend | ▏ 0.4% |
+| Origin | ▉ 3.9% |  |  |
 <!-- stats:end:model -->
 
 One feature module is imported by both trainer and sidecar, so no second implementation can drift. Published
