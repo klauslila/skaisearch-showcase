@@ -328,6 +328,14 @@ sequenceDiagram
 Backups are nightly `pg_dump -Fc` with retention, and the restore script is tested rather than assumed: it
 snapshots first, then recreates the roles the dump deliberately omits.
 
+A healthcheck that only proves the database is reachable will sit at `healthy` while the thing it fronts is
+broken. Mine did. The api probe hit `/health`, which runs `SELECT 1`, so it stayed green for days while `/`
+returned 500: a deleted `web/dist` had left the read-only bind mount dangling, and bind mounts resolve at
+container start, so nothing short of a restart repairs one. No user saw it, because Vercel fronts the apex,
+which is precisely why nothing surfaced it. The probe now hits `/` as well, and I reproduced the failure to
+confirm the probe catches it rather than assuming: `/health` 200, `/` 500, probe red. It tolerates a 404
+there, because a container with no frontend built yet is not a broken one.
+
 ---
 
 # 🔒 Security
