@@ -274,17 +274,17 @@ otherwise straddle the train/test boundary.
 | Booking-curve forecaster | Built, gated off | In-sample win was per-route leakage. Naive wins the time split at every horizon |
 
 <!-- stats:start:model · generated from the promoted model, do not hand-edit -->
-The promoted model scores **R² 0.75** against a **0.11** median baseline at **19.5%** error, fitted on
-120,877 rows across 400 trees. Gain by feature:
+The promoted model scores **R² 0.74** against a **0.10** median baseline at **19.6%** error, fitted on
+122,233 rows across 400 trees. Gain by feature:
 
 | Feature | Gain | Feature | Gain |
 |---|---|---|---|
-| Trip type | ██████████ 43.1% | Climate season | ▌ 2.2% |
-| Distance / haul | █████ 21.7% | Source | ▎ 1.3% |
-| Destination | ███▌ 15.3% | Lead time (days) | ▏ 1.0% |
-| Stops | █▎ 5.4% | Carriers | ▏ 1.0% |
-| Departure month | █▏ 5.0% | Weekend | ▏ 0.3% |
-| Origin | ▊ 3.6% |  |  |
+| Trip type | ██████████ 42.5% | Climate season | ▌ 2.2% |
+| Distance / haul | ████▉ 21.2% | Source | ▎ 1.4% |
+| Destination | ███▋ 15.8% | Lead time (days) | ▎ 1.1% |
+| Stops | █▍ 6.0% | Carriers | ▏ 0.9% |
+| Departure month | █▏ 4.9% | Weekend | ▏ 0.3% |
+| Origin | ▊ 3.7% |  |  |
 <!-- stats:end:model -->
 
 One feature module is imported by both trainer and sidecar, so no second implementation can drift. Published
