@@ -33,8 +33,8 @@
 | **3 · Model (ML)** | Nightly retrain, promotion gate, inference | [skaisearch.com](https://skaisearch.com), no login |
 
 <!-- stats:start:strip · generated from the live database, do not hand-edit -->
-**12.1M+** price observations · **1.36M+** flights · **960k+** logged query attempts ·
-**1,800+** collection runs · **35** active routes · **27** airports · **5.5 GB** on disk ·
+**12.3M+** price observations · **1.37M+** flights · **980k+** logged query attempts ·
+**1,900+** collection runs · **35** active routes · **27** airports · **5.6 GB** on disk ·
 collecting since 2026-02-02.
 <!-- stats:end:strip -->
 
@@ -252,7 +252,7 @@ otherwise straddle the train/test boundary.
 | Signal | State | Metric |
 |---|---|---|
 | Percentile price label | Live | Stable per-route spread, tightens with history |
-| Event-driven seasonality | Live | Origin-holiday lift beats naive out-of-sample across 34 routes |
+| Event-driven seasonality | Live | Origin-holiday lift beats naive out-of-sample on every route the gate promotes |
 | Per-month seasonality index | Rejected by the gate | A monthly mean flattens the in-holiday spike |
 | Per-route climate lift | Rejected, retried nightly | Falls back to holiday-only until the data carries it |
 | Booking-curve forecaster | Built, gated off | In-sample win was per-route leakage. Naive wins the time split at every horizon |
