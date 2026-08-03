@@ -38,7 +38,9 @@
 collecting since 2026-02-02.
 <!-- stats:end:strip -->
 
-23 tables · 18 migrations · 115 named queries.
+<!-- stats:start:codebase · generated from the schema and the working tree, do not hand-edit -->
+23 tables · 19 migrations · 114 named queries.
+<!-- stats:end:codebase -->
 
 ## 🏗 Architecture
 
@@ -174,8 +176,22 @@ sequenceDiagram
 | Endpoint | Before | After | Change |
 |---|---|---|---|
 | `/flights/latest` | 2,500 ms | **128 ms** | Bounded window first, then `DISTINCT ON`, replacing a tuple-IN over a `MAX()` subquery |
+| `/flights/departure-dates` | 1,820 ms | **1.7 ms** | Aggregated a route's entire history on every page load. Rolled up to one row per departure date per scrape day, refreshed when the writers finish |
 | `/stats/airlines-on-routes` | 187 ms | **9.5 ms** | `EXISTS` planned as a 301k-loop nested join, rewritten to JOIN + DISTINCT for a hash join |
 | Any request | ~4 ms | **~0.3 ms** | `psycopg_pool` instead of a per-request handshake |
+
+The departure-dates one is the shape worth naming, because the query was not badly written. It scanned 2.4
+million observations to return 304 rows, and it got slower every night, so rewriting it was never going to
+fix the trend. The whole history rolls up to 61,179 rows. Both cheaper-looking fixes were dead ends, and
+measuring said so before I committed to either: a validity filter cut the chart from 304 departure dates to
+36, because this table keeps its history in the rows a later scrape supersedes, and a covering index for an
+index-only scan bought nothing, because the cost was the row count rather than the access path. Scrapers are
+the only writers, so the rollup refreshes when a run finishes and is never stale by more than the gap
+between runs.
+
+Timing every endpoint to find the others turned up the opposite result too. The slowest one left, 4.1 s over
+a 30 day window, had no caller anywhere, so it was deleted rather than optimised. Its window looked bounded
+and its cost was not.
 
 Pool-level `statement_timeout` an order of magnitude above the heaviest legitimate query, so no request can
 pin a pool slot against the scrapers.
