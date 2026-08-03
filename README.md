@@ -284,7 +284,7 @@ Four deploy targets, four mechanisms, because they have different constraints.
 
 | Target | Trigger | Mechanism |
 |---|---|---|
-| **api** (backend, and the frontend build it serves) | Manual | Rolling `SIGHUP`. Source and build are mounted read-only, so no image rebuild |
+| **api** (backend, and the frontend build it serves) | Manual | Rolling `SIGHUP` for the Python code. Source and build are mounted read-only, so no image rebuild, and a rebuilt frontend needs no signal at all: it is read from disk per request |
 | **frontend** (public apex) | Push to `main` | Vercel builds and deploys on its own |
 | **scrapers** | Code change | Image rebuild. The next scheduled run picks it up, since these bake code in |
 | **model** | Nightly promotion | Artifacts written to a shared volume, then the sidecar restarts to reload them |
