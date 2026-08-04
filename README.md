@@ -334,7 +334,7 @@ sequenceDiagram
 
 | Job | Cadence | Runs |
 |---|---|---|
-| Bring the stack up | At login | `compose up` for the long-running services |
+| Keep the stack up | At login, then every 2 min | Starts any long-running service that is not running, and leaves healthy ones untouched |
 | Collection | 4× daily, per source | One-shot container per source |
 | Nightly | 03:00 | Retrain and gate, recompute distributions, invalidate stale observations, refresh feature data, regenerate published figures, `pg_dump` |
 | Alert watcher | Every 10 min | Fires once all three sources report for a schedule window, with a timeout so a stalled source cannot block alerts |
