@@ -33,13 +33,13 @@
 | **3 · Model (ML)** | Nightly retrain, promotion gate, inference | [skaisearch.com](https://skaisearch.com), no login |
 
 <!-- stats:start:strip · generated from the live database, do not hand-edit -->
-**13.4M+** price observations · **1.45M+** flights · **1,140k+** logged query attempts ·
-**1,900+** collection runs · **35** active routes · **27** airports · **6.1 GB** on disk ·
+**13.5M+** price observations · **1.47M+** flights · **1,160k+** logged query attempts ·
+**1,900+** collection runs · **36** active routes · **28** airports · **6.2 GB** on disk ·
 collecting since 2026-02-02.
 <!-- stats:end:strip -->
 
 <!-- stats:start:codebase · generated from the schema and the working tree, do not hand-edit -->
-23 tables · 19 migrations · 114 named queries.
+23 tables · 19 migrations · 115 named queries.
 <!-- stats:end:codebase -->
 
 ## 🏗 Architecture
@@ -274,16 +274,16 @@ otherwise straddle the train/test boundary.
 | Booking-curve forecaster | Built, gated off | In-sample win was per-route leakage. Naive wins the time split at every horizon |
 
 <!-- stats:start:model · generated from the promoted model, do not hand-edit -->
-The promoted model scores **R² 0.73** against a **0.12** median baseline at **20.6%** error, fitted on
-132,157 rows across 400 trees. Gain by feature:
+The promoted model scores **R² 0.67** against a **0.33** median baseline at **21.5%** error, fitted on
+133,610 rows across 400 trees. Gain by feature:
 
 | Feature | Gain | Feature | Gain |
 |---|---|---|---|
-| Trip type | ██████████ 42.8% | Climate season | ▌ 2.5% |
-| Distance / haul | █████▏ 22.4% | Source | ▎ 1.3% |
-| Destination | ███▌ 15.4% | Lead time (days) | ▏ 1.0% |
-| Stops | █▎ 5.5% | Carriers | ▏ 0.9% |
-| Departure month | █ 4.3% | Weekend | ▏ 0.3% |
+| Trip type | ██████████ 44.0% | Climate season | ▌ 2.4% |
+| Distance / haul | ████▉ 21.5% | Source | ▎ 1.3% |
+| Destination | ███▌ 15.6% | Lead time (days) | ▏ 1.0% |
+| Stops | █▏ 5.2% | Carriers | ▏ 0.8% |
+| Departure month | ▉ 4.3% | Weekend | ▏ 0.3% |
 | Origin | ▊ 3.6% |  |  |
 <!-- stats:end:model -->
 
