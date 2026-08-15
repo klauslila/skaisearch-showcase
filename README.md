@@ -33,8 +33,8 @@
 | **3 · Model (ML)** | Nightly retrain, promotion gate, inference | [skaisearch.com](https://skaisearch.com), no login |
 
 <!-- stats:start:strip · generated from the live database, do not hand-edit -->
-**14.0M+** price observations · **1.51M+** flights · **1,240k+** logged query attempts ·
-**2,000+** collection runs · **36** active routes · **28** airports · **6.4 GB** on disk ·
+**14.2M+** price observations · **1.52M+** flights · **1,260k+** logged query attempts ·
+**2,000+** collection runs · **36** active routes · **28** airports · **6.5 GB** on disk ·
 collecting since 2026-02-02.
 <!-- stats:end:strip -->
 
@@ -274,17 +274,17 @@ otherwise straddle the train/test boundary.
 | Booking-curve forecaster | Built, gated off | In-sample win was per-route leakage. Naive wins the time split at every horizon |
 
 <!-- stats:start:model · generated from the promoted model, do not hand-edit -->
-The promoted model scores **R² 0.81** against a **0.59** median baseline at **15.2%** error, fitted on
-137,945 rows across 400 trees. Each figure is the median of 4 separate 14-day runs, so one lucky window can't carry it. Pushed to **49 days out** it scores **R² 0.71** at **20.2%** error. Gain by feature:
+The promoted model scores **R² 0.82** against a **0.60** median baseline at **14.5%** error, fitted on
+139,447 rows across 400 trees. Each figure is the median of 4 separate 14-day runs, so one lucky window can't carry it. Pushed to **49 days out** it scores **R² 0.72** at **20.1%** error. Gain by feature:
 
 | Feature | Gain | Feature | Gain |
 |---|---|---|---|
-| Trip type | ██████████ 44.8% | Climate season | ▌ 2.3% |
-| Distance / haul | ████▊ 21.7% | Source | ▎ 1.3% |
-| Destination | ███▎ 14.6% | Lead time (days) | ▏ 1.0% |
-| Stops | █▏ 5.4% | Carriers | ▏ 0.8% |
-| Departure month | ▉ 4.3% | Weekend | ▏ 0.3% |
-| Origin | ▊ 3.7% |  |  |
+| Trip type | ██████████ 43.2% | Climate season | ▌ 2.3% |
+| Distance / haul | █████ 22.1% | Source | ▎ 1.3% |
+| Destination | ███▌ 15.5% | Lead time (days) | ▏ 1.0% |
+| Stops | █▎ 5.5% | Carriers | ▏ 0.8% |
+| Departure month | ▉ 4.3% | Weekend | ▏ 0.4% |
+| Origin | ▊ 3.6% |  |  |
 <!-- stats:end:model -->
 
 One feature module is imported by both trainer and sidecar, so no second implementation can drift. Published
