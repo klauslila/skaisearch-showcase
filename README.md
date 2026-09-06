@@ -33,8 +33,8 @@
 | **3 · Model (ML)** | Nightly retrain, promotion gate, inference | [skaisearch.com](https://skaisearch.com), no login |
 
 <!-- stats:start:strip · generated from the live database, do not hand-edit -->
-**17.8M+** price observations · **1.79M+** flights · **1,800k+** logged query attempts ·
-**2,200+** collection runs · **42** active routes · **34** airports · **8.4 GB** on disk ·
+**18.0M+** price observations · **1.81M+** flights · **1,820k+** logged query attempts ·
+**2,300+** collection runs · **45** active routes · **41** airports · **8.5 GB** on disk ·
 collecting since 2026-02-02.
 <!-- stats:end:strip -->
 
