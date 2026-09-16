@@ -33,13 +33,13 @@
 | **3 · Model (ML)** | Nightly retrain, promotion gate, inference | [skaisearch.com](https://skaisearch.com), no login |
 
 <!-- stats:start:strip · generated from the live database, do not hand-edit -->
-**20.0M+** price observations · **1.98M+** flights · **2,100k+** logged query attempts ·
-**2,400+** collection runs · **45** active routes · **40** airports · **9.1 GB** on disk ·
+**20.2M+** price observations · **2.00M+** flights · **2,130k+** logged query attempts ·
+**2,400+** collection runs · **45** active routes · **40** airports · **9.2 GB** on disk ·
 collecting since 2026-02-02.
 <!-- stats:end:strip -->
 
 <!-- stats:start:codebase · generated from the schema and the working tree, do not hand-edit -->
-24 tables · 26 migrations · 116 named queries.
+24 tables · 28 migrations · 116 named queries.
 <!-- stats:end:codebase -->
 
 ## 🏗 Architecture
@@ -274,8 +274,8 @@ otherwise straddle the train/test boundary.
 | Booking-curve forecaster | Built, gated off | In-sample win was per-route leakage. Naive wins the time split at every horizon |
 
 <!-- stats:start:model · generated from the promoted model, do not hand-edit -->
-The promoted model scores **R² 0.79** against a **0.56** median baseline at **17.2%** error, fitted on
-186,216 rows across 400 trees. Each figure is the median of 4 separate 14-day runs, so one lucky window can't carry it. Pushed to **49 days out** it scores **R² 0.72** at **19.9%** error. Gain by feature:
+The promoted model's typical error runs **31% below** a route×lead median baseline (RMSE **313** vs **452**), off by **17.2%** on average, fitted on
+186,216 rows across 400 trees. Each figure is the median of 4 separate 14-day runs, so one lucky window can't carry it. On those same windows it scores R² 0.79 against a 0.56 baseline, quoted per-window because R² divides by each window's own variance and so isn't comparable between runs. Pushed to **49 days out** the reduction is **28%**, at **19.9%** error. Gain by feature:
 
 | Feature | Gain | Feature | Gain |
 |---|---|---|---|
