@@ -274,16 +274,16 @@ otherwise straddle the train/test boundary.
 | Booking-curve forecaster | Built, gated off | In-sample win was per-route leakage. Naive wins the time split at every horizon |
 
 <!-- stats:start:model · generated from the promoted model, do not hand-edit -->
-The promoted model's typical error runs **31% below** a route×lead median baseline (RMSE **313** vs **452**), off by **17.2%** on average, fitted on
-186,216 rows across 400 trees. Each figure is the median of 4 separate 14-day runs, so one lucky window can't carry it. On those same windows it scores R² 0.79 against a 0.56 baseline, quoted per-window because R² divides by each window's own variance and so isn't comparable between runs. Pushed to **49 days out** the reduction is **28%**, at **19.9%** error. Gain by feature:
+The promoted model's typical error runs **30% below** a route×lead median baseline (RMSE **319** vs **455**), off by **18.2%** on average, fitted on
+188,352 rows across 400 trees. Each figure is the median of 4 separate 14-day runs, so one lucky window can't carry it. On those same windows it scores R² 0.78 against a 0.55 baseline, quoted per-window because R² divides by each window's own variance and so isn't comparable between runs. Pushed to **49 days out** the reduction is **27%**, at **19.8%** error. Gain by feature:
 
 | Feature | Gain | Feature | Gain |
 |---|---|---|---|
-| Trip type | ██████████ 40.4% | Climate season | ▍ 1.8% |
-| Distance / haul | ██████▍ 25.8% | Source | ▎ 1.4% |
-| Destination | ███▊ 15.2% | Lead time (days) | ▏ 1.0% |
-| Stops | █▍ 5.9% | Carriers | ▏ 0.8% |
-| Origin | ▉ 3.8% | Weekend | ▏ 0.3% |
+| Trip type | ██████████ 39.4% | Climate season | ▍ 1.9% |
+| Distance / haul | ██████▋ 26.2% | Source | ▎ 1.3% |
+| Destination | ███▊ 14.8% | Lead time (days) | ▎ 1.0% |
+| Stops | █▊ 7.1% | Carriers | ▏ 0.7% |
+| Origin | ▉ 3.6% | Weekend | ▏ 0.3% |
 | Departure month | ▉ 3.6% |  |  |
 <!-- stats:end:model -->
 
