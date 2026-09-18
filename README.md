@@ -33,8 +33,8 @@
 | **3 · Model (ML)** | Nightly retrain, promotion gate, inference | [skaisearch.com](https://skaisearch.com), no login |
 
 <!-- stats:start:strip · generated from the live database, do not hand-edit -->
-**20.4M+** price observations · **2.02M+** flights · **2,170k+** logged query attempts ·
-**2,400+** collection runs · **45** active routes · **40** airports · **9.3 GB** on disk ·
+**20.6M+** price observations · **2.04M+** flights · **2,200k+** logged query attempts ·
+**2,400+** collection runs · **45** active routes · **40** airports · **9.4 GB** on disk ·
 collecting since 2026-02-02.
 <!-- stats:end:strip -->
 
@@ -274,17 +274,17 @@ otherwise straddle the train/test boundary.
 | Booking-curve forecaster | Built, gated off | In-sample win was per-route leakage. Naive wins the time split at every horizon |
 
 <!-- stats:start:model · generated from the promoted model, do not hand-edit -->
-The promoted model's typical error runs **30% below** a route×lead median baseline (RMSE **322** vs **459**), off by **19.0%** on average, fitted on
-190,418 rows across 400 trees. Each figure is the median of 4 separate 14-day runs, so one lucky window can't carry it. On those same windows it scores R² 0.77 against a 0.54 baseline, quoted per-window because R² divides by each window's own variance and so isn't comparable between runs. Pushed to **49 days out** the reduction is **27%**, at **19.9%** error. Gain by feature:
+The promoted model's typical error runs **29% below** a route×lead median baseline (RMSE **328** vs **460**), off by **20.1%** on average, fitted on
+192,484 rows across 400 trees. Each figure is the median of 4 separate 14-day runs, so one lucky window can't carry it. On those same windows it scores R² 0.76 against a 0.54 baseline, quoted per-window because R² divides by each window's own variance and so isn't comparable between runs. Pushed to **49 days out** the reduction is **30%**, at **19.1%** error. Gain by feature:
 
 | Feature | Gain | Feature | Gain |
 |---|---|---|---|
-| Trip type | ██████████ 39.2% | Climate season | ▍ 1.9% |
-| Distance / haul | ██████▋ 26.4% | Source | ▎ 1.2% |
-| Destination | ███▊ 14.9% | Lead time (days) | ▎ 1.0% |
-| Stops | █▊ 7.3% | Carriers | ▏ 0.8% |
-| Departure month | ▉ 3.6% | Weekend | ▏ 0.3% |
-| Origin | ▊ 3.4% |  |  |
+| Trip type | ██████████ 39.5% | Climate season | ▍ 1.8% |
+| Distance / haul | ██████▏ 24.5% | Source | ▎ 1.3% |
+| Destination | ███▊ 15.1% | Lead time (days) | ▎ 1.0% |
+| Stops | ██▏ 8.5% | Carriers | ▏ 0.8% |
+| Origin | ▉ 3.6% | Weekend | ▏ 0.3% |
+| Departure month | ▉ 3.6% |  |  |
 <!-- stats:end:model -->
 
 One feature module is imported by both trainer and sidecar, so no second implementation can drift. Published
