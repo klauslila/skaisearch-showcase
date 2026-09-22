@@ -33,8 +33,8 @@
 | **3 · Model (ML)** | Nightly retrain, promotion gate, inference | [skaisearch.com](https://skaisearch.com), no login |
 
 <!-- stats:start:strip · generated from the live database, do not hand-edit -->
-**21.2M+** price observations · **2.09M+** flights · **2,290k+** logged query attempts ·
-**2,400+** collection runs · **45** active routes · **40** airports · **9.7 GB** on disk ·
+**21.4M+** price observations · **2.11M+** flights · **2,320k+** logged query attempts ·
+**2,500+** collection runs · **44** active routes · **40** airports · **9.8 GB** on disk ·
 collecting since 2026-02-02.
 <!-- stats:end:strip -->
 
@@ -274,16 +274,16 @@ otherwise straddle the train/test boundary.
 | Booking-curve forecaster | Built, gated off | In-sample win was per-route leakage. Naive wins the time split at every horizon |
 
 <!-- stats:start:model · generated from the promoted model, do not hand-edit -->
-The promoted model's typical error runs **33% below** a route×lead median baseline (RMSE **295** vs **442**), off by **14.4%** on average, fitted on
-197,607 rows across 400 trees. Each figure is the median of 4 separate 14-day runs, so one lucky window can't carry it. On those same windows it scores R² 0.81 against a 0.56 baseline, quoted per-window because R² divides by each window's own variance and so isn't comparable between runs. Pushed to **49 days out** the reduction is **32%**, at **19.6%** error. Gain by feature:
+The promoted model's typical error runs **34% below** a route×lead median baseline (RMSE **289** vs **437**), off by **13.9%** on average, fitted on
+199,521 rows across 400 trees. Each figure is the median of 4 separate 14-day runs, so one lucky window can't carry it. On those same windows it scores R² 0.83 against a 0.57 baseline, quoted per-window because R² divides by each window's own variance and so isn't comparable between runs. Pushed to **49 days out** the reduction is **34%**, at **19.8%** error. Gain by feature:
 
 | Feature | Gain | Feature | Gain |
 |---|---|---|---|
-| Trip type | ██████████ 42.0% | Climate season | ▍ 1.7% |
-| Distance / haul | ██████ 25.4% | Source | ▎ 1.3% |
-| Destination | ███ 13.1% | Lead time (days) | ▏ 1.0% |
-| Stops | █▉ 8.3% | Carriers | ▏ 0.8% |
-| Departure month | ▊ 3.3% | Day of week | ▏ 0.7% |
+| Trip type | ██████████ 40.7% | Climate season | ▍ 1.9% |
+| Distance / haul | ██████ 24.9% | Source | ▎ 1.5% |
+| Destination | ███▎ 13.6% | Lead time (days) | ▎ 1.1% |
+| Stops | ██▏ 9.0% | Carriers | ▏ 0.8% |
+| Departure month | ▊ 3.5% | Day of week | ▏ 0.7% |
 | Origin | ▌ 2.3% |  |  |
 <!-- stats:end:model -->
 
