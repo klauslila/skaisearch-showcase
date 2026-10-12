@@ -153,6 +153,13 @@ from being blocked, and the distinction has teeth: one source once read as 40% e
 had a successful result from a different source for the same route and date. Relabelled, and that class is
 excluded from availability features.
 
+The same log retires dead queries. A route that has had nothing but empty answers from a source for two
+weeks since its last success stops being asked of that source, and gets one re-check a week. Only an empty
+answer counts, never a block or an error, and the rule stands down for the run if it would cover more than
+a quarter of a source's routes or the source has gone 48 hours without a success anywhere, so a broken
+parser can't pass for a route the source doesn't cover. The first route it caught had been empty for over
+three months, at 95 queries a run.
+
 ---
 
 # 🖥 2 · Application
@@ -192,6 +199,10 @@ between runs.
 Timing every endpoint to find the others turned up the opposite result too. The slowest one left, 4.1 s over
 a 30 day window, had no caller anywhere, so it was deleted rather than optimised. Its window looked bounded
 and its cost was not.
+
+Indexes get the same treatment. One was a strict prefix of another and cost every price write. Before it
+was dropped, every recorded query was re-planned against a physical copy of production: 918 of 921 plans
+were unchanged, and the other three were as fast or faster.
 
 Pool-level `statement_timeout` an order of magnitude above the heaviest legitimate query, so no request can
 pin a pool slot against the scrapers.
@@ -272,6 +283,7 @@ otherwise straddle the train/test boundary.
 | Per-month seasonality index | Rejected by the gate | A monthly mean flattens the in-holiday spike |
 | Per-route climate lift | Rejected, retried nightly | Falls back to holiday-only until the data carries it |
 | Booking-curve forecaster | Built, gated off | In-sample win was per-route leakage. Naive wins the time split at every horizon |
+| Holiday calendars as price-model inputs | Rejected in A/B, retest in 2027 | A calendar shifted two weeks earned most of the same gain |
 
 <!-- stats:start:model · generated from the promoted model, do not hand-edit -->
 The promoted model's typical error runs **47% below** a route×lead median baseline (RMSE **234** vs **443**), off by **10.5%** on average, fitted on
@@ -291,6 +303,24 @@ One feature module is imported by both trainer and sidecar, so no second impleme
 hyperparameters are read from the training source, because a serialised model reports library defaults for
 training-time settings. Every figure on the public model page comes from one generated metadata block, so
 none of it depends on being manually updated.
+
+That shared module sets the order for changing a feature: the sidecar ships first and has to serve the
+current model byte-identically, then the nightly retrain promotes the new one. Climate season moved that way
+from a month lookup, wrong on 18% of airport-days, to each destination's own season dates. Accuracy didn't
+move, so it shipped for correctness, not for score.
+
+The holiday calendars behind the seasonality signal had gaps nothing flagged. One source's Italian school
+calendar stopped in mid-June 2026, so every Italian departure after that read as term time. Now every date
+takes the best source that reaches it, official feeds first. Past the last published date, breaks are
+projected from earlier years, and only for countries whose projection passes a held-out-year backtest. A
+source that fails is never read as no holidays, a refresh that would shrink coverage is refused, and a daily
+check measures how far each origin's calendar reaches against the 200-day pricing horizon.
+
+Feeding those calendars into the price model was tested and rejected. It removed most of a known
+over-estimate for early April 2027, where the model replays 2026's Easter, but a calendar shifted by two
+weeks removed most of it too, so the gain was not holiday knowledge. And the only Easter in the data had
+been seen within 60 days of departure, so the model carried that premium to Easter 2027 fares six months
+out and over-priced them by 4 to 13%.
 
 ---
 
@@ -341,8 +371,12 @@ sequenceDiagram
 
 ### Resilience and disaster recovery
 
-Backups are nightly `pg_dump -Fc` with retention, and the restore script is tested rather than assumed: it
-snapshots first, then recreates the roles the dump deliberately omits.
+Backups are nightly `pg_dump -Fc` with retention, and the restore is tested rather than assumed: run end to
+end into a throwaway container, it brings back the 1.3 GB dump in 6 min 53 s with no errors. The first such
+run found the script three bugs deep. Setup steps silently did nothing, the dump was piped to a parallel
+restore that refuses piped input and failed after the drop, and a parallel restore done right still breaks
+TimescaleDB's catalog. It now reads the dump's table of contents before dropping anything, snapshots first,
+recreates the roles the dump deliberately omits, and restores serially.
 
 Healthchecks assert what a container serves, not only what it depends on: the api's probes a live `SELECT 1`
 and a non-5xx `/`, because a read-only bind mount resolves at container start and a stale one fails the
