@@ -33,7 +33,7 @@
 | **3 · Model (ML)** | Nightly retrain, promotion gate, inference | [skaisearch.com](https://skaisearch.com), no login |
 
 <!-- stats:start:strip · generated from the live database, do not hand-edit -->
-**27.9M+** price observations · **2.59M+** flights · **3,220k+** logged query attempts ·
+**28.1M+** price observations · **2.60M+** flights · **3,240k+** logged query attempts ·
 **2,800+** collection runs · **44** active routes · **40** airports · **10.4 GB** on disk ·
 collecting since 2026-02-02.
 <!-- stats:end:strip -->
@@ -286,16 +286,16 @@ otherwise straddle the train/test boundary.
 | Holiday calendars as price-model inputs | Rejected in A/B, retest in 2027 | A calendar shifted two weeks earned most of the same gain |
 
 <!-- stats:start:model · generated from the promoted model, do not hand-edit -->
-The promoted model's typical error runs **48% below** a route×lead median baseline (RMSE **228** vs **438**), off by **10.6%** on average, fitted on
-261,434 rows across 400 trees. Each figure is the median of 4 separate 14-day runs, so one lucky window can't carry it. On those same windows it scores R² 0.89 against a 0.60 baseline, quoted per-window because R² divides by each window's own variance and so isn't comparable between runs. Pushed to **49 days out** the reduction is **45%**, at **11.4%** error. Gain by feature:
+The promoted model's typical error runs **47% below** a route×lead median baseline (RMSE **234** vs **441**), off by **10.7%** on average, fitted on
+262,739 rows across 400 trees. Each figure is the median of 4 separate 14-day runs, so one lucky window can't carry it. On those same windows it scores R² 0.89 against a 0.60 baseline, quoted per-window because R² divides by each window's own variance and so isn't comparable between runs. Pushed to **49 days out** the reduction is **45%**, at **11.4%** error. Gain by feature:
 
 | Feature | Gain | Feature | Gain |
 |---|---|---|---|
-| Trip type | ██████████ 40.9% | Source | ▍ 2.0% |
-| Destination | ████▉ 20.3% | Lead time (days) | ▍ 1.6% |
-| Distance / haul | ███▋ 15.1% | Climate season | ▎ 1.5% |
-| Stops | █▍ 5.9% | Origin | ▎ 1.4% |
-| Departure month | █▏ 5.0% | Carriers | ▎ 1.1% |
+| Trip type | ██████████ 39.9% | Source | ▍ 1.9% |
+| Destination | █████ 20.0% | Lead time (days) | ▍ 1.6% |
+| Distance / haul | ████ 16.0% | Climate season | ▍ 1.5% |
+| Stops | █▋ 6.5% | Origin | ▎ 1.4% |
+| Departure month | █▏ 4.9% | Carriers | ▏ 0.9% |
 | Departure date | █ 4.4% | Day of week | ▏ 0.8% |
 <!-- stats:end:model -->
 
