@@ -28,7 +28,7 @@
 
 | Subsystem | Owns | Public surface |
 |---|---|---|
-| **1 · Collection** | Three sources, four times a day, every outcome recorded | None, internal |
+| **1 · Collection** | Three sources, up to four times a day, every outcome recorded | None, internal |
 | **2 · Application** | API, dashboard, route pages, alerts, ops console | [skaisearch.com/app](https://skaisearch.com/app), opens as a view-only guest |
 | **3 · Model (ML)** | Nightly retrain, promotion gate, inference | [skaisearch.com](https://skaisearch.com), no login |
 
@@ -365,9 +365,10 @@ sequenceDiagram
 | Job | Cadence | Runs |
 |---|---|---|
 | Keep the stack up | At login, then every 2 min | Starts any long-running service that is not running, and leaves healthy ones untouched |
-| Collection | 4× daily, per source | One-shot container per source |
+| Collection | 4× daily per source, 3× for one | One-shot container per source |
 | Nightly | 03:00 | Retrain and gate, recompute distributions, invalidate stale observations, refresh feature data, regenerate published figures, `pg_dump` |
 | Alert watcher | Every 10 min | Fires once all three sources report for a schedule window, with a timeout so a stalled source cannot block alerts |
+| Ops watchdog | Every 5 min | Mails when the API is down or slow, a query runs long, a container stops, disk runs low, or a source stops saving data |
 
 ### Resilience and disaster recovery
 
@@ -382,6 +383,14 @@ Healthchecks assert what a container serves, not only what it depends on: the ap
 and a non-5xx `/`, because a read-only bind mount resolves at container start and a stale one fails the
 frontend while the database probe stays green. A 404 there is tolerated, since a container with no frontend
 built yet is not a broken one.
+
+**One source saved nothing for 12 days, and nothing mailed.** In October it stopped issuing a visitor's
+session identity as a cookie and began serving it inside the page, so every warm-up failed from that hour on.
+The runs still started and finished on schedule. The health page listed the errors, but it only answers when
+asked. The scraper now reads the identity from the page, with the cookie as a fallback, and the gap has its
+own check: per source, the age of the newest query that returned fares and the streak of runs that saved
+none, mailed once either crosses its threshold. It fired on the live condition the day it shipped and cleared
+during the first scheduled run on the fixed image.
 
 ---
 
