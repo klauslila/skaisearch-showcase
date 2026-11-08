@@ -68,8 +68,7 @@ flowchart TB
 | Non-functional requirement | Implementation |
 |---|---|
 | Apex domain | Vercel serves the built React bundle. The api container serves the same build, so the two cannot diverge |
-| `api.` subdomain | Cloudflare proxy, then an outbound tunnel. No inbound port is open on the machine or the router |
-| `db.` subdomain | Cloudflare proxy, restricted access |
+| `api.` subdomain | The only hostname that reaches the machine: Cloudflare proxy, then an outbound tunnel. No inbound port is open on the machine or the router |
 | Adminer | Unrouted, loopback only, and absent from the default compose up |
 | Container runtime | OrbStack rather than Docker Desktop, set to start at login and never pause its VM while the host sleeps |
 | CPU architecture | Every service pins `linux/arm64`; base images are version-locked, not floating tags |
@@ -207,6 +206,19 @@ were unchanged, and the other three were as fast or faster.
 Pool-level `statement_timeout` an order of magnitude above the heaviest legitimate query, so no request can
 pin a pool slot against the scrapers.
 
+### Storage
+
+Collection is planned to run into 2028, and at about 0.65 GB a week the plain price table would not have
+fitted the disk. In November it became a compressed TimescaleDB hypertable in weekly chunks. Chunks older
+than 60 days compress from 2.4 GB to 304 MB, which took the table from 8.7 GB to 3.9 GB, and the
+departure-date rollup now refreshes in 23 s instead of up to a minute. The new table was built beside the
+live one and swapped in with one short transaction, a three-and-a-half-minute job with the scrapers paused.
+
+Compression changes what an update costs. One that can reach a compressed chunk unpacks all of it and
+aborts at TimescaleDB's 100,000-row limit: on a trial copy, a routine invalidation tried to unpack 1.9
+million rows, and bounded to recent rows the same update took 2 ms. So every UPDATE and DELETE on that
+table now pins its time column, and the lint rejects one that doesn't.
+
 ### Auth, and a delivered response the browser threw away
 
 ```mermaid
@@ -311,7 +323,9 @@ move, so it shipped for correctness, not for score.
 
 The holiday calendars behind the seasonality signal had gaps nothing flagged. One source's Italian school
 calendar stopped in mid-June 2026, so every Italian departure after that read as term time. Now every date
-takes the best source that reaches it, official feeds first. Past the last published date, breaks are
+takes the best source that reaches it, official feeds first. Where school terms differ by state, an origin
+reads its own state's calendar plus the national one, so Melbourne departures follow Victoria's terms, not
+New South Wales's. Past the last published date, breaks are
 projected from earlier years, and only for countries whose projection passes a held-out-year backtest. A
 source that fails is never read as no holidays, a refresh that would shrink coverage is refused, and a daily
 check measures how far each origin's calendar reaches against the 200-day pricing horizon.
@@ -421,7 +435,7 @@ flowchart TD
     STAT["generated figures<br/>refreshed nightly from the database"]
   end
   CTX --> AG["agent implements inside the constraints"]
-  AG --> LINT["pre-commit · SQL dialect lint<br/>13 rules · rejects the commit"]
+  AG --> LINT["pre-commit · SQL lint<br/>15 rules · rejects the commit"]
   LINT --> DOC["pre-push · doc-sync<br/>warns when docs lag code"]
   DOC --> REV["my review"]
   REV --> MAIN[("main")]
@@ -450,13 +464,15 @@ without me, and the calls I keep.
 
 | Guard | Catches | When |
 |---|---|---|
-| SQL dialect lint, 13 rules | `julianday`, `ifnull`, `INSERT OR`, `AUTOINCREMENT`, `strftime`, `datetime('now')`, `HAVING` on alias, unescaped `LIKE %`, `CROSS JOIN … ON`, two `COALESCE` cases, integer against BOOLEAN | Pre-commit, blocking |
+| SQL lint, 15 rules | SQLite dialect slips (`julianday`, `ifnull`, `INSERT OR`, `AUTOINCREMENT`, `strftime`, `datetime('now')`, `HAVING` on alias, unescaped `LIKE %`, `CROSS JOIN … ON`, two `COALESCE` cases, integer against BOOLEAN), plus two for the compressed price table: an UPDATE or DELETE that doesn't pin the time column, and a row count read from the table's empty parent | Pre-commit, blocking |
 | Doc-sync | Docs lagging the code | Pre-push |
 | Generated figures | Published counts diverging from the database | Nightly |
 | Promotion gate | A model scoring better without generalising | Nightly |
 
 A boolean migration once covered the named query files and missed the inline scraper SQL, dropping writes in
-production. A review pass had already approved it.
+production. A review pass had already approved it. The newest rule has a similar origin: for a few hours after
+the move to a hypertable, the dashboard's total read 0, because the quick row estimate it used comes from the
+table's parent, which a hypertable leaves empty.
 
 ### Division of labour
 
