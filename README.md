@@ -33,13 +33,13 @@
 | **3 · Model (ML)** | Nightly retrain, promotion gate, inference | [skaisearch.com](https://skaisearch.com), no login |
 
 <!-- stats:start:strip · generated from the live database, do not hand-edit -->
-**31.5M+** price observations · **2.84M+** flights · **3,680k+** logged query attempts ·
-**3,000+** collection runs · **62** active routes · **50** airports · **15.5 GB** on disk ·
+**31.7M+** price observations · **2.87M+** flights · **3,710k+** logged query attempts ·
+**3,000+** collection runs · **62** active routes · **50** airports · **7.1 GB** on disk ·
 collecting since 2026-02-02.
 <!-- stats:end:strip -->
 
 <!-- stats:start:codebase · generated from the schema and the working tree, do not hand-edit -->
-32 tables · 45 migrations · 131 named queries.
+31 tables · 45 migrations · 131 named queries.
 <!-- stats:end:codebase -->
 
 ## 🏗 Architecture
@@ -305,17 +305,17 @@ otherwise straddle the train/test boundary.
 | Holiday calendars as price-model inputs | Rejected in A/B, retest in 2027 | A calendar shifted two weeks earned most of the same gain |
 
 <!-- stats:start:model · generated from the promoted model, do not hand-edit -->
-The promoted model's typical error runs **48% below** a route×lead median baseline (RMSE **237** vs **452**), off by **11.1%** on average, fitted on
-288,765 rows across 400 trees. Each figure is the median of 4 separate 14-day runs, so one lucky window can't carry it. On those same windows it scores R² 0.89 against a 0.60 baseline, quoted per-window because R² divides by each window's own variance and so isn't comparable between runs. Pushed to **49 days out** the reduction is **44%**, at **11.9%** error. Gain by feature:
+The promoted model's typical error runs **48% below** a route×lead median baseline (RMSE **234** vs **447**), off by **11.1%** on average, fitted on
+290,812 rows across 400 trees. Each figure is the median of 4 separate 14-day runs, so one lucky window can't carry it. On those same windows it scores R² 0.90 against a 0.61 baseline, quoted per-window because R² divides by each window's own variance and so isn't comparable between runs. Pushed to **49 days out** the reduction is **44%**, at **11.8%** error. Gain by feature:
 
 | Feature | Gain | Feature | Gain |
 |---|---|---|---|
-| Trip type | ██████████ 40.6% | Climate season | ▌ 2.1% |
-| Destination | ████▊ 19.3% | Source | ▍ 1.9% |
-| Distance / haul | ███▊ 15.5% | Lead time (days) | ▎ 1.5% |
-| Stops | █▌ 6.2% | Origin | ▎ 1.1% |
-| Departure month | █▎ 5.5% | Carriers | ▏ 1.0% |
-| Departure date | █▏ 4.6% | Day of week | ▏ 0.8% |
+| Trip type | ██████████ 41.8% | Climate season | ▍ 1.9% |
+| Destination | ████▌ 19.2% | Source | ▍ 1.8% |
+| Distance / haul | ███▌ 15.0% | Lead time (days) | ▎ 1.5% |
+| Stops | █▍ 6.1% | Origin | ▎ 1.2% |
+| Departure month | █▎ 5.3% | Carriers | ▏ 0.9% |
+| Departure date | █ 4.6% | Day of week | ▏ 0.8% |
 <!-- stats:end:model -->
 
 One feature module is imported by both trainer and sidecar, so no second implementation can drift. Published
