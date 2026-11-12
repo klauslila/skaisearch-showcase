@@ -219,12 +219,13 @@ aborts at TimescaleDB's 100,000-row limit: on a trial copy, a routine invalidati
 million rows, and bounded to recent rows the same update took 2 ms. So every UPDATE and DELETE on that
 table now pins its time column, and the lint rejects one that doesn't.
 
-Reads caught me out the same day. The scrapers' price check finds the cheapest fare for each date with a
-subquery, and with no time limit each one read every compressed chunk, so calls ran for up to four and a
-half minutes and some hit the five-minute statement timeout. Limiting it to the last 45 days fixed that
-once the cutoff carried a timezone. A plain timestamp lets TimescaleDB skip old chunks only when the
-query starts running, so the planner still counted every one and picked a slow join. A full price check
-now takes under 20 s per scraper.
+Reads needed a limit too. After each run the scrapers re-check their cheapest fares, and the query that
+finds them searched the whole history. On the compressed table it read every old chunk again for each date,
+so the slowest calls took about four and a half minutes and a few hit the five-minute timeout. I limited it
+to the last 45 days, since anything before that has already been replaced by a newer scrape. My first try
+also timed out in testing, because the cutoff had no timezone. Without one, TimescaleDB can only skip old
+chunks after the query has started, so the planner assumes it will read all of them and picks a slow join.
+With a UTC cutoff a full check takes under 20 seconds per scraper.
 
 ### Auth, and a delivered response the browser threw away
 
