@@ -56,13 +56,16 @@ flowchart TB
   subgraph MM["Mac Mini M4 · OrbStack · linux/arm64 · launchd"]
     direction TB
     API["api container<br/>FastAPI · uvicorn · 2 workers"]
-    PGX[("postgres container<br/>PG 17 + TimescaleDB<br/>named volume")]
+    PGX[("postgres container<br/>PG 17 + TimescaleDB + pgBackRest<br/>init as PID 1 · named volume")]
     FPX["ML sidecar<br/>no published port"]
     SCX["3 scraper containers<br/>one-shot, profile-gated"]
+    R1[("backup copy<br/>Mac disk, outside the VM")]
     API --> PGX
     API <--> FPX
     SCX --> PGX
+    PGX -->|"WAL · backups"| R1
   end
+  PGX -->|"WAL · backups<br/>encrypted first"| B2[("Backblaze B2<br/>Object Lock · 7 days")]
 ```
 
 | Non-functional requirement | Implementation |
@@ -73,6 +76,7 @@ flowchart TB
 | Container runtime | OrbStack rather than Docker Desktop, set to start at login and never pause its VM while the host sleeps |
 | CPU architecture | Every service pins `linux/arm64`; base images are version-locked, not floating tags |
 | State | Postgres in a named volume, not a bind mount, which avoids the file-locking failure mode |
+| Backups | Continuous WAL archiving to the Mac's disk and to Backblaze B2: at most about five minutes of data can be lost |
 | Profiles | Scrapers and Adminer are profile-gated, so `compose up` starts only the long-running services |
 | Scheduling | `launchd` on the host, not cron inside a container |
 | Host tuning | Persistent sysctl ephemeral-port and TIME_WAIT tuning via a LaunchDaemon, after a TCP port-exhaustion outage |
@@ -107,7 +111,7 @@ flowchart LR
 
 | Service | Role | Isolation |
 |---|---|---|
-| `postgres` | TimescaleDB image, named volume | Loopback-bound, healthchecked, per-role `statement_timeout` |
+| `postgres` | TimescaleDB image with pgBackRest, named volume | Loopback-bound, healthchecked, per-role `statement_timeout`, `init: true` so a failed WAL push cannot restart it |
 | `api` | REST, and serves the built frontend | `cap_drop: ALL`, read-only rootfs + tmpfs, non-root uid, CPU/mem/PID caps |
 | ML sidecar | Inference only | Internal network only, no published port, hardened identically |
 | 3 scrapers | One per source, one-shot | `init: true` for reaping, own process group per fetch, `cap_drop: ALL` |
@@ -389,17 +393,44 @@ sequenceDiagram
 | Keep the stack up | At login, then every 2 min | Starts any long-running service that is not running, and leaves healthy ones untouched |
 | Collection | 4× daily per source, 3× for one | One-shot container per source |
 | Nightly | 03:00 | Retrain and gate, recompute distributions, invalidate stale observations, refresh feature data, regenerate published figures, `pg_dump` |
+| Backups | Daily 13:15, WAL continuously | Weekly full and daily differential to both copies, then a check of the bucket's protections. Every 28 days, a restore drill from the offsite copy |
 | Alert watcher | Every 10 min | Fires once all three sources report for a schedule window, with a timeout so a stalled source cannot block alerts |
-| Ops watchdog | Every 5 min | Mails when the API is down or slow, a query runs long, a container stops, disk runs low, or a source stops saving data |
+| Ops watchdog | Every 5 min | Mails when the API is down or slow, a query runs long, a container stops, disk runs low or a source stops saving data. Also when WAL archiving fails, a backup goes stale or the offsite bucket loses a protection or nears its cap |
 
 ### Resilience and disaster recovery
 
-Backups are nightly `pg_dump -Fc` with retention, and the restore is tested rather than assumed: run end to
-end into a throwaway container, it brings back the 1.3 GB dump in 6 min 53 s with no errors. The first such
-run found the script three bugs deep. Setup steps silently did nothing, the dump was piped to a parallel
-restore that refuses piped input and failed after the drop, and a parallel restore done right still breaks
-TimescaleDB's catalog. It now reads the dump's table of contents before dropping anything, snapshots first,
-recreates the roles the dump deliberately omits, and restores serially.
+Since November the database is backed up continuously. pgBackRest archives the write-ahead log as it is
+written and closes a segment at least every five minutes, which is the most data a failure can lose. With the
+nightly dump alone it was up to a day. Every segment goes to two copies: a folder on the Mac outside the VM
+image and a Backblaze B2 bucket. Everything bound for B2 is encrypted before upload, and the bucket has Object
+Lock in compliance mode for seven days, so no one can delete a version inside that window, me and anyone
+holding a stolen key included. A weekly full and a daily differential go to both. Every 28 days a drill
+restores the offsite copy on its own into a throwaway container and checks the result: the first from B2 took
+7 min 36 s, and its price table matched production's row count. A script rebuilds the B2 repository as it
+stood at a past moment, in case the bucket itself is damaged.
+
+The nightly `pg_dump` stays as a second, logical method, and its restore is tested: run end to end into a
+throwaway container, it brings back the 1.3 GB dump in 6 min 53 s with no errors. The first such run found the
+script three bugs deep. Setup steps silently did nothing, the dump was piped to a parallel restore that
+refuses piped input and failed after the drop, and a parallel restore done right still breaks TimescaleDB's
+catalog. It now reads the dump's table of contents before dropping anything, snapshots first, recreates the
+roles the dump deliberately omits, and restores serially. A test in November found one more gap: a rollup view
+came back with 55,769 of its 140,804 rows, because the restore computes it while TimescaleDB still hides the
+compressed chunks. The script now refreshes every materialized view once the data is in.
+
+**Postgres needed an init process too.** pgBackRest pushes WAL from a detached process. When one exits, the
+kernel hands it to PID 1. With the postmaster in that role, Postgres reaps it, sees an unknown child exit with
+an error, takes it for a crashed backend and restarts the whole database. On a scratch copy with failing
+pushes that meant 2 restarts in about 20 seconds; with an init process as PID 1, none in 9 failures. So a slow
+or refused upload to B2 would have taken the live database down.
+
+**The offsite copy filled its free tier in four days.** I had estimated two weeks to B2's free 10 GB. Measured
+three days in, the bucket was growing about 2 GB a day, and the next backup took it to 10.3 GB. From then on
+B2 refused every upload. Postgres counts a WAL segment as archived only once both copies hold it, so segments
+piled up on the database's disk. After 20 hours the backlog hit its 4 GiB limit and pgBackRest dropped it. The
+Mac copy already held all but the last one, and that single gap cut point-in-time recovery short until the
+next backup. The nightly dump was unaffected. I now pay for storage past 10 GB, about 20 cents a month at the
+projected peak, under a daily cap with a warning well before it.
 
 Healthchecks assert what a container serves, not only what it depends on: the api's probes a live `SELECT 1`
 and a non-5xx `/`, because a read-only bind mount resolves at container start and a stale one fails the
@@ -427,7 +458,8 @@ during the first scheduled run on the fixed image.
 | Guest role | Writes rejected for every unsafe method at one chokepoint, not per endpoint; PII endpoints unreachable |
 | Admin SQL console | SELECT allow-list, side-effecting read functions denied, per-query timeout |
 | Headers | CSP with no third-party origins, HSTS preload, frame-deny, nosniff, strict referrer |
-| Ingress | Tunnel only, no inbound ports. Postgres and logs never leave the machine |
+| Backups | Encrypted before upload with a passphrase only I hold, Object Lock in compliance mode, an access key for that bucket alone, its protections checked daily |
+| Ingress | Tunnel only, no inbound ports. Logs never leave the machine, and the database leaves it only as encrypted backups |
 
 ---
 
@@ -498,7 +530,7 @@ table's parent, which a hypertable leaves empty.
 |---|---|
 | Runtime | Docker Compose · OrbStack · launchd · linux/arm64 |
 | Collect | Python 3.13 · Playwright · HTTP clients · rotating residential proxies |
-| Store | PostgreSQL 17 · TimescaleDB · psycopg pool · aiosql · pg_dump |
+| Store | PostgreSQL 17 · TimescaleDB · psycopg pool · aiosql · pgBackRest · Backblaze B2 · pg_dump |
 | Serve | FastAPI · uvicorn · React · Vite · TypeScript · MUI · JWT · Cloudflare Tunnel · Vercel |
 | AI / ML | XGBoost · pandas · scikit-learn · SHAP |
 
