@@ -150,6 +150,7 @@ sequenceDiagram
 | Cohort ordering | A truncated run drops the cheap refillable tail, never the harder cohort |
 | Server-side `now()` for timestamps | A VM clock jump wrote rows into the future, corrupting ordering and invalidation |
 | Two sampling modes in parallel | A rolling lead-time ladder answers seasonality; only a fixed departure window accumulates a booking trajectory |
+| Each leg's local times in a flight's identity | Flights alike in everything but their times shared one record, so a repricing looked the same as another flight becoming the cheapest |
 
 **Every query writes an outcome, not only the ones that found fares.** That is what separates no-availability
 from being blocked, and the distinction has teeth: one source once read as 40% empty, and 100% of those rows
